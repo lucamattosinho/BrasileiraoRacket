@@ -173,22 +173,31 @@
 
 ;;Transforma a lista de desempenhos em uma lista de strings
 (define (desempenho->string desempenho)
+  
+  (define (criar-string-com-espacos valor largura)
+    (if (number? valor)
+        (let* ((valor-str (number->string valor))
+               (espacos (make-string (- largura (string-length valor-str)) #\space)))
+          (string-append valor-str espacos))
+        (let* ((valor-str valor)
+               (espacos (make-string (- largura (string-length valor-str)) #\space)))
+          (string-append valor-str espacos))))
+  
   (cond
     [(empty? desempenho) empty]
     [else
-     (string-append (desempenho-time desempenho)
-                    (make-string (- (string-length (desempenho-time desempenho)) alinhamento) #\space)
-                    (number->string (desempenho-pontos desempenho))
-                    (make-string (- alinhamento (string-length (number->string (desempenho-pontos desempenho)))) #\space)
-                    (number->string (desempenho-vitorias desempenho))
-                    (make-string (- alinhamento (string-length (number->string (desempenho-vitorias desempenho)))) #\space)
-                    (number->string (desempenho-saldo-gols desempenho)))
-     ]))
+     (string-append
+      (criar-string-com-espacos (desempenho-time desempenho) 15)
+      (criar-string-com-espacos (desempenho-pontos desempenho) 5)
+      (criar-string-com-espacos (desempenho-vitorias desempenho) 5)
+      (criar-string-com-espacos (desempenho-saldo-gols desempenho) 5))]
+     ))
 
 (define alinhamento 5)
 
 ;; ListaString -> ListaString
 (define (classifica-times sresultados)
+  
   (define resultados (map string->resultado1 sresultados))
   
   (define times (encontra-times resultados))
@@ -199,4 +208,4 @@
 
   (map desempenho->string classificacao))
 
-;;(display-lines (classifica-times (port->lines)))
+(display-lines (classifica-times (port->lines)))

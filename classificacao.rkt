@@ -1,35 +1,27 @@
 #lang racket
 
-(require racket/file)
+(require examples)
 
 ;;Estrutura do Resultado de uma partida
+;;Leva em consideração a forma exata de como
+;;o resultado da partida é disponibilizado no
+;;arquivo jogos.txt. Armazena o time1 (primeiro
+;;time mostrado no placar) e seus gols e igualmente
+;;para o time2 (segundo time mostrado no placar)
 (struct resultado (time1 gols1 time2 gols2) #:transparent)
 
 ;;Estrutura do desempenho de um time
+;;Armazena o nome do time, os pontos por ele marcados,
+;;as vitórias e o saldo de gols.
 (struct desempenho (time pontos vitorias saldo-gols) #:transparent) 
 
-;;Caminho do .txt contendo os resultados
-(define caminho-do-arquivo "/home/luca/Downloads/jogos.txt")
-
-;;Leitura do arquivo
-(define (ler-arquivo caminho)
-  (file->lines caminho))
-
-;;Armazenamento dos resultados em uma lista de strings
-(define sresultados (ler-arquivo caminho-do-arquivo))
-                
 ;;ListaString->ListaResultado
+;;Recebe como entrada uma string e
+;;transforma esta string em um
+;;resultado, sendo um resultado a
+;;primeira estrutura definida neste código.
+;;Caso a lista esteja vazia, retorna vazio.
 (define (string->resultado lista-string)
-  (cond
-    [(empty? lista-string) empty]
-    [else (define result (resultado (first (string-split (first lista-string)))
-                          (string->number (first (rest (string-split (first lista-string)))))
-                          (first (rest (rest (string-split (first lista-string)))))
-                          (string->number (first (rest (rest (rest (string-split (first lista-string)))))))))
-     (cons result (string->resultado (rest lista-string)))]))
-
-;;ListaString->ListaResultado
-(define (string->resultado1 lista-string)
   (cond
     [(empty? lista-string) empty]
     [else (define result (resultado (first (string-split lista-string))
@@ -38,16 +30,32 @@
                           (string->number (first (rest (rest (rest (string-split lista-string))))))))
      result]))
 
+(examples
+ (check-equal? (string->resultado "Corinthians 6 Sao-Paulo 1") (resultado "Corinthians" 6 "Sao-Paulo" 1))
+ (check-equal? (string->resultado (list)) empty))
+
+
+(define (time-ja-existe? time lista)
+  (cond
+    [(empty? lista) #f] 
+    [(equal? time (first lista)) #t]
+    [else (time-ja-existe? time (rest lista))]))
+
 ;;ListaResultados->ListaString
 (define (encontra-times1 resultados)
   (cond
     [(empty? resultados) empty]
-    [else (cons (resultado-time1 (first resultados)) (encontra-times (rest resultados)))])
-  )
+    [else (cons (resultado-time1 (first resultados)) (encontra-times (rest resultados)))]))
+
+(define (remove-repetidos resultados)
+  (cond
+    [(empty? resultados) empty]
+    [(time-ja-existe? (first resultados) (rest resultados)) (remove-repetidos (rest resultados))]
+    [else (cons (first resultados) (remove-repetidos (rest resultados)))]))
 
 ;;Faz com que cada time apareça uma vez só na lista
 (define (encontra-times resultados)
-  (remove-duplicates (encontra-times1 resultados)))
+  (remove-repetidos (encontra-times1 resultados)))
 
 ;;Calcula os pontos de um time no campeonato
 (define (calcula-pontos-aux times resultados)
@@ -198,7 +206,7 @@
 ;; ListaString -> ListaString
 (define (classifica-times sresultados)
   
-  (define resultados (map string->resultado1 sresultados))
+  (define resultados (map string->resultado sresultados))
   
   (define times (encontra-times resultados))
 

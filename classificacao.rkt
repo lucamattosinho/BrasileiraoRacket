@@ -13,7 +13,8 @@
 ;;Estrutura do desempenho de um time
 ;;Armazena o nome do time, os pontos por ele marcados,
 ;;as vitórias e o saldo de gols.
-(struct desempenho (time pontos vitorias saldo-gols) #:transparent) 
+(struct desempenho (time pontos vitorias saldo-gols) #:transparent)
+
 
 ;;ListaString->ListaResultado
 ;;Recebe como entrada uma string e
@@ -57,6 +58,7 @@
       [(time-ja-existe? (first resultados) (rest resultados)) (remove-repetidos (rest resultados))]
       [else (cons (first resultados) (remove-repetidos (rest resultados)))]))
 
+  
   (remove-repetidos (encontra-times1 resultados)))
 
 (examples
@@ -136,6 +138,7 @@
 ;;recursão com o resto da lista de times) e no
 ;;fim forma uma lista contendo a quantidade de
 ;;vitórias que cada equipe obteve.
+
 (define (calcula-vitorias times resultados)
   
   (define (calcula-vitorias-aux times resultados)
@@ -147,18 +150,18 @@
          [(> (resultado-gols1 (first resultados)) (resultado-gols2 (first resultados)))
           (cons 1 (calcula-vitorias-aux times (rest resultados)))]
          [(< (resultado-gols1 (first resultados)) (resultado-gols2 (first resultados)))
-          (calcula-vitorias-aux times (rest resultados))]
+          (calcula-vitorias-aux times (filter (curry equal? (first times)) (rest resultados)))]
          [(= (resultado-gols1 (first resultados)) (resultado-gols2 (first resultados)))
-          (calcula-vitorias-aux times (rest resultados))]
+          (calcula-vitorias-aux times (filter (curry equal? (first times)) (rest resultados)))]
          [else (calcula-vitorias-aux (rest times) resultados)])]
       [(equal? (first times) (resultado-time2 (first resultados)))
        (cond
          [(> (resultado-gols2 (first resultados)) (resultado-gols1 (first resultados)))
           (cons 1 (calcula-vitorias-aux times (rest resultados)))]
          [(< (resultado-gols2 (first resultados)) (resultado-gols1 (first resultados)))
-          (calcula-vitorias-aux times (rest resultados))]
+          (calcula-vitorias-aux times (filter (curry equal? (first times)) (rest resultados)))]
          [(= (resultado-gols2 (first resultados)) (resultado-gols1 (first resultados)))
-          (calcula-vitorias-aux times (rest resultados))]
+          (calcula-vitorias-aux times (filter (curry equal? (first times)) (rest resultados)))]
          [else (cons (calcula-vitorias-aux (rest times) resultados))])]
       [else (calcula-vitorias-aux times (rest resultados))]))
   
@@ -265,23 +268,19 @@
 ;;e formata para facilitar a leitura.
 (define (desempenho->string desempenho)
   
-  (define (criar-string-com-espacos valor largura)
+  (define (cria-string-com-espacos valor largura)
     (if (number? valor)
-        (let* ((valor-str (number->string valor))
-               (espacos (make-string (- largura (string-length valor-str)) #\space)))
-          (string-append valor-str espacos))
-        (let* ((valor-str valor)
-               (espacos (make-string (- largura (string-length valor-str)) #\space)))
-          (string-append valor-str espacos))))
+        (string-append (number->string valor) (make-string (- largura (string-length (number->string valor))) #\space))
+        (string-append valor (make-string (- largura (string-length valor)) #\space))))
   
   (cond
     [(empty? desempenho) empty]
     [else
      (string-append
-      (criar-string-com-espacos (desempenho-time desempenho) 15)
-      (criar-string-com-espacos (desempenho-pontos desempenho) 5)
-      (criar-string-com-espacos (desempenho-vitorias desempenho) 5)
-      (criar-string-com-espacos (desempenho-saldo-gols desempenho) 5))]))
+      (cria-string-com-espacos (desempenho-time desempenho) 15)
+      (cria-string-com-espacos (desempenho-pontos desempenho) 5)
+      (cria-string-com-espacos (desempenho-vitorias desempenho) 5)
+      (cria-string-com-espacos (desempenho-saldo-gols desempenho) 5))]))
 
 ;; ListaString -> ListaString
 (define (classifica-times sresultados)

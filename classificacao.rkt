@@ -25,14 +25,15 @@
 (define (string->resultado str)
   (cond
     [(empty? str) empty]
-    [else (define result (resultado (first (string-split str))
-                          (string->number (first (rest (string-split str))))
-                          (first (rest (rest (string-split str))))
-                          (string->number (first (rest (rest (rest (string-split str))))))))
-     result]))
+    [else (resultado (first (string-split str))
+                     (string->number (first (rest (string-split str))))
+                     (first (rest (rest (string-split str))))
+                     (string->number (first (rest (rest (rest (string-split str)))))))]))
 
 (examples
- (check-equal? (string->resultado "Corinthians 6 Sao-Paulo 1") (resultado "Corinthians" 6 "Sao-Paulo" 1)))
+ (check-equal? (string->resultado "Corinthians 6 Sao-Paulo 1")
+               (resultado "Corinthians" 6 "Sao-Paulo" 1))
+ (check-equal? (string->resultado empty) empty))
 
 ;;ListaResultados->ListaString
 ;;Recebe uma lista contendo os resultados
@@ -50,20 +51,25 @@
   (define (encontra-times1 resultados)
     (cond
       [(empty? resultados) empty]
-      [else (cons (resultado-time1 (first resultados)) (cons (resultado-time2 (first resultados)) (encontra-times (rest resultados))))]))
+      [else (cons (resultado-time1 (first resultados))
+                  (cons (resultado-time2 (first resultados)) (encontra-times (rest resultados))))]))
 
   (define (remove-repetidos resultados)
     (cond
       [(empty? resultados) empty]
-      [(time-ja-existe? (first resultados) (rest resultados)) (remove-repetidos (rest resultados))]
-      [else (cons (first resultados) (remove-repetidos (rest resultados)))]))
+      [else (cons (first resultados)
+                  (remove-repetidos(filter (lambda (x) (not (equal? x (first resultados)))) (rest resultados))))]))
 
   
   (remove-repetidos (encontra-times1 resultados)))
 
 (examples
- (check-equal? (encontra-times (list (resultado "Corinthians" 6 "Sao-Paulo" 1))) '("Corinthians" "Sao-Paulo"))
- (check-equal? (encontra-times (list (resultado "Flamengo" 1 "Vasco" 0) (resultado "Vasco" 2 "America-RJ" 2))) '("Flamengo" "Vasco" "America-RJ")))
+ (check-equal? (encontra-times (list (resultado "Corinthians" 6 "Sao-Paulo" 1)))
+               '("Corinthians" "Sao-Paulo"))
+ (check-equal? (encontra-times (list (resultado "Flamengo" 1 "Vasco" 0)
+                                     (resultado "Vasco" 2 "America-RJ" 2)))
+               '("Flamengo" "Vasco" "America-RJ"))
+ (check-equal? (encontra-times (list)) (list)))
 
 
 ;;ListaString, ListaResultados -> ListaInteiros
@@ -116,9 +122,13 @@
      (cons (foldr + 0 (calcula-pontos-aux times resultados)) (calcula-pontos (rest times) resultados))]))
 
 (examples
- (check-equal? (calcula-pontos (list "Corinthians" "Flamengo") (list (resultado "Corinthians" 8 "Flamengo" 0) (resultado "Flamengo" 2 "Corinthians" 3))) '(6 0))
- (check-equal? (calcula-pontos (list "Fluminense" "Palmeiras" "Vasco") (list (resultado "Palmeiras" 3 "Fluminense" 1) (resultado "Vasco" 2 "Fluminense" 2))) '(1 3 1)))
-
+ (check-equal? (calcula-pontos (list "Corinthians" "Flamengo")
+                               (list (resultado "Corinthians" 8 "Flamengo" 0)
+                                     (resultado "Flamengo" 2 "Corinthians" 3))) '(6 0))
+ (check-equal? (calcula-pontos (list "Fluminense" "Palmeiras" "Vasco")
+                               (list (resultado "Palmeiras" 3 "Fluminense" 1)
+                                     (resultado "Vasco" 2 "Fluminense" 2))) '(1 3 1))
+ (check-equal? (calcula-pontos (list) (list)) (list)))
 
 ;;ListaString, ListaResultados -> ListaInteiros
 ;;Calcula as vitórias de um time.
@@ -150,18 +160,18 @@
          [(> (resultado-gols1 (first resultados)) (resultado-gols2 (first resultados)))
           (cons 1 (calcula-vitorias-aux times (rest resultados)))]
          [(< (resultado-gols1 (first resultados)) (resultado-gols2 (first resultados)))
-          (calcula-vitorias-aux times (filter (curry equal? (first times)) (rest resultados)))]
+          (calcula-vitorias-aux times (rest resultados))]
          [(= (resultado-gols1 (first resultados)) (resultado-gols2 (first resultados)))
-          (calcula-vitorias-aux times (filter (curry equal? (first times)) (rest resultados)))]
+          (calcula-vitorias-aux times (rest resultados))]
          [else (calcula-vitorias-aux (rest times) resultados)])]
       [(equal? (first times) (resultado-time2 (first resultados)))
        (cond
          [(> (resultado-gols2 (first resultados)) (resultado-gols1 (first resultados)))
           (cons 1 (calcula-vitorias-aux times (rest resultados)))]
          [(< (resultado-gols2 (first resultados)) (resultado-gols1 (first resultados)))
-          (calcula-vitorias-aux times (filter (curry equal? (first times)) (rest resultados)))]
+          (calcula-vitorias-aux times (rest resultados))]
          [(= (resultado-gols2 (first resultados)) (resultado-gols1 (first resultados)))
-          (calcula-vitorias-aux times (filter (curry equal? (first times)) (rest resultados)))]
+          (calcula-vitorias-aux times (rest resultados))]
          [else (cons (calcula-vitorias-aux (rest times) resultados))])]
       [else (calcula-vitorias-aux times (rest resultados))]))
   
@@ -172,8 +182,13 @@
 
 
 (examples
- (check-equal? (calcula-vitorias (list "Corinthians" "Flamengo") (list (resultado "Corinthians" 8 "Flamengo" 0) (resultado "Flamengo" 2 "Corinthians" 3))) '(2 0))
- (check-equal? (calcula-vitorias (list "Fluminense" "Palmeiras" "Vasco") (list (resultado "Palmeiras" 3 "Fluminense" 1) (resultado "Vasco" 2 "Fluminense" 2))) '(0 1 0)))
+ (check-equal? (calcula-vitorias (list "Corinthians" "Flamengo")
+                                 (list (resultado "Corinthians" 8 "Flamengo" 0)
+                                       (resultado "Flamengo" 2 "Corinthians" 3))) '(2 0))
+ (check-equal? (calcula-vitorias (list "Fluminense" "Palmeiras" "Vasco")
+                                 (list (resultado "Palmeiras" 3 "Fluminense" 1)
+                                       (resultado "Vasco" 2 "Fluminense" 2))) '(0 1 0))
+ (check-equal? (calcula-vitorias (list) (list)) (list)))
 
 ;;ListaString, ListaResultados -> ListaInteiros
 ;;Recebe uma lista contendo os times e outra contendo
@@ -199,9 +214,11 @@
       [(empty? resultados) empty]
       [(empty? times) empty]
       [(equal? (first times) (resultado-time1 (first resultados)))
-       (cons (- (resultado-gols1 (first resultados)) (resultado-gols2 (first resultados))) (calcula-sg-aux times (rest resultados)))]
+       (cons (- (resultado-gols1 (first resultados)) (resultado-gols2 (first resultados)))
+             (calcula-sg-aux times (rest resultados)))]
       [(equal? (first times) (resultado-time2 (first resultados)))
-       (cons (- (resultado-gols2 (first resultados)) (resultado-gols1 (first resultados))) (calcula-sg-aux times (rest resultados)))]
+       (cons (- (resultado-gols2 (first resultados)) (resultado-gols1 (first resultados)))
+             (calcula-sg-aux times (rest resultados)))]
       [else (calcula-sg-aux times (rest resultados))]))
   
   (cond
@@ -210,9 +227,14 @@
      (cons (foldr + 0 (calcula-sg-aux times resultados)) (calcula-sg (rest times) resultados))]))
 
 (examples
- (check-equal? (calcula-sg (list "Corinthians" "Flamengo") (list (resultado "Corinthians" 8 "Flamengo" 0) (resultado "Flamengo" 2 "Corinthians" 3))) '(9 -9))
- (check-equal? (calcula-sg (list "Fluminense" "Palmeiras" "Vasco") (list (resultado "Palmeiras" 3 "Fluminense" 1) (resultado "Vasco" 2 "Fluminense" 2))) '(-2 2 0)))
-    
+ (check-equal? (calcula-sg (list "Corinthians" "Flamengo")
+                           (list (resultado "Corinthians" 8 "Flamengo" 0)
+                                 (resultado "Flamengo" 2 "Corinthians" 3))) '(9 -9))
+ (check-equal? (calcula-sg (list "Fluminense" "Palmeiras" "Vasco")
+                           (list (resultado "Palmeiras" 3 "Fluminense" 1)
+                                 (resultado "Vasco" 2 "Fluminense" 2))) '(-2 2 0))
+ (check-equal? (calcula-sg (list) (list)) (list)))
+
 ;;Calcula os desempenhos de cada time, usando
 ;;como auxiliares as funções calcula-pontos,
 ;;calcula-vitorias e calcula-sg, e os adiciona
@@ -228,9 +250,18 @@
      (cons desemp (calcula-desempenhos (rest times) resultados))]))
 
 (examples
- (check-equal? (calcula-desempenhos (list "Corinthians" "Flamengo") (list (resultado "Corinthians" 8 "Flamengo" 0) (resultado "Flamengo" 2 "Corinthians" 3))) (list (desempenho "Corinthians" 6 2 9) (desempenho "Flamengo" 0 0 -9)))
- (check-equal? (calcula-desempenhos (list "Fluminense" "Palmeiras" "Vasco") (list (resultado "Palmeiras" 3 "Fluminense" 1) (resultado "Vasco" 2 "Fluminense" 2))) (list (desempenho "Fluminense" 1 0 -2) (desempenho "Palmeiras" 3 1 2) (desempenho "Vasco" 1 0 0))))
-
+ (check-equal? (calcula-desempenhos (list "Corinthians" "Flamengo")
+                                    (list (resultado "Corinthians" 8 "Flamengo" 0)
+                                          (resultado "Flamengo" 2 "Corinthians" 3)))
+               (list (desempenho "Corinthians" 6 2 9)
+                     (desempenho "Flamengo" 0 0 -9)))
+ (check-equal? (calcula-desempenhos (list "Fluminense" "Palmeiras" "Vasco")
+                                    (list (resultado "Palmeiras" 3 "Fluminense" 1)
+                                          (resultado "Vasco" 2 "Fluminense" 2)))
+               (list (desempenho "Fluminense" 1 0 -2)
+                     (desempenho "Palmeiras" 3 1 2)
+                     (desempenho "Vasco" 1 0 0)))
+ (check-equal? (calcula-desempenhos (list) (list)) (list)))
 
 ;;Classifica os desempenhos de acordo com estes parâmetros:
 ;;Primeiro: Mais pontos
@@ -264,14 +295,17 @@
                        (classifica (rest desempenhos))
                        compara-times)))
 
-;;Transforma a lista de desempenhos em uma lista de strings
-;;e formata para facilitar a leitura.
+;;Desempenho->String
+;;Obtém um desempenho como entrada
+;;e o formata para facilitar a leitura.
 (define (desempenho->string desempenho)
   
   (define (cria-string-com-espacos valor largura)
     (if (number? valor)
-        (string-append (number->string valor) (make-string (- largura (string-length (number->string valor))) #\space))
-        (string-append valor (make-string (- largura (string-length valor)) #\space))))
+        (string-append (number->string valor)
+                       (make-string (- largura (string-length (number->string valor))) #\space))
+        (string-append valor
+                       (make-string (- largura (string-length valor)) #\space))))
   
   (cond
     [(empty? desempenho) empty]
@@ -282,7 +316,16 @@
       (cria-string-com-espacos (desempenho-vitorias desempenho) 5)
       (cria-string-com-espacos (desempenho-saldo-gols desempenho) 5))]))
 
-;; ListaString -> ListaString
+(examples
+ (check-equal? (desempenho->string (desempenho "Corinthians" 12 3 5))
+               "Corinthians    12   3    5    ")
+ (check-equal? (desempenho->string empty) empty))
+
+;;ListaString -> ListaString
+;;Recebe uma lista de strings que representam
+;;os resultados de partidas de um campeonato
+;;e retorna a classificação deste campeonato
+;;formatado para boa leitura em forma de string.
 (define (classifica-times sresultados)
   
   (define resultados (map string->resultado sresultados))
@@ -294,5 +337,14 @@
   (define classificacao (classifica desempenhos))
 
   (map desempenho->string classificacao))
+
+(examples
+ (check-equal? (classifica-times (list "Cruzeiro 2 Botafogo 1"
+                                       "Vasco 2 Sampaio-Correa 2"))
+               (list "Cruzeiro       3    1    1    "
+                     "Sampaio-Correa 1    0    0    "
+                     "Vasco          1    0    0    "
+                     "Botafogo       0    0    -1   "))
+ (check-equal? (classifica-times (list)) (list)))
 
 (display-lines (classifica-times (port->lines)))
